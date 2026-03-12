@@ -9,11 +9,7 @@ const previewContainer = document.getElementById("previewContainer");
 const timeline = document.getElementById("timeline");
 
 const startBtn = document.getElementById("startSlideshow");
-const pauseBtn = document.getElementById("pauseSlideshow");
 const slideImage = document.getElementById("slideImage");
-const slideTimeInput = document.getElementById("slideTime");
-
-const saveJsonBtn = document.getElementById("saveJson");
 const loadJsonInput = document.getElementById("loadJson");
 
 let allImages = [];
@@ -188,12 +184,10 @@ startBtn.addEventListener("click", function(){
     return;
     }
     
-    const slideTime = slideTimeInput.value * 1000;
-    
     const data = {
     allImages: allImages,
     slideshowImages: slideshowImages,
-    slideTime: slideTime
+    slideTime: 2000
     };
     
     localStorage.setItem("slideshowData", JSON.stringify(data));
@@ -201,41 +195,7 @@ startBtn.addEventListener("click", function(){
     window.open("slideshow.html", "_blank");
     
     });
-
-// pause slideshow
-
-
-pauseBtn.addEventListener("click", function(){
-
-clearInterval(interval);
-
-});
-
-// save json
-
-
-saveJsonBtn.addEventListener("click", function(){
-
-const jsonData = {
-allImages: allImages,
-slideshowImages: slideshowImages
-};
-
-const json = JSON.stringify(jsonData, null, 2);
-
-const blob = new Blob([json], {type:"application/json"});
-
-const a = document.createElement("a");
-
-a.href = URL.createObjectURL(blob);
-
-a.download = "gallery.json";
-
-a.click();
-
-});
-
-
+    
 // load json
 
 
