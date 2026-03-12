@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Slideshow</title>
+<style>
+body{
+text-align:center;
+background:black;
+margin:0;
+}
+
+img{
+max-width:90%;
+max-height:90vh;
+margin-top:20px;
+}
+</style>
+</head>
+<body>
+
+<img id="slideImage">
+
+<script>
+
+const data = JSON.parse(localStorage.getItem("slideshowData"));
+
+const slideImage = document.getElementById("slideImage");
+
+let index = 0;
+
+function startShow(){
+
+slideImage.src = data.allImages.find(img => img.id === data.slideshowImages[index]).src;
+
+setInterval(()=>{
+
+index = (index + 1) % data.slideshowImages.length;
+
+slideImage.src = data.allImages.find(img => img.id === data.slideshowImages[index]).src;
+
+}, data.slideTime);
+
+}
+
+startShow();
+
+</script>
+
+</body>
+</html>

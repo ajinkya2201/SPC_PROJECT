@@ -181,35 +181,26 @@ updateSlideshowArray();
 
 // start slideshow 
 
-
 startBtn.addEventListener("click", function(){
 
-if(slideshowImages.length === 0){
-alert("Add images to slideshow first");
-return;
-}
-
-const slideTime = slideTimeInput.value * 1000;
-
-currentIndex = 0;
-
-clearInterval(interval);
-
-interval = setInterval(()=>{
-
-const id = slideshowImages[currentIndex];
-
-const imageObj = allImages.find(img => img.id === id);
-
-if(!imageObj) return;
-
-slideImage.src = imageObj.src;
-
-currentIndex = (currentIndex + 1) % slideshowImages.length;
-
-}, slideTime);
-
-});
+    if(slideshowImages.length === 0){
+    alert("Add images to slideshow first");
+    return;
+    }
+    
+    const slideTime = slideTimeInput.value * 1000;
+    
+    const data = {
+    allImages: allImages,
+    slideshowImages: slideshowImages,
+    slideTime: slideTime
+    };
+    
+    localStorage.setItem("slideshowData", JSON.stringify(data));
+    
+    window.open("slideshow.html", "_blank");
+    
+    });
 
 // pause slideshow
 
