@@ -5,7 +5,7 @@ app = Flask(__name__)
 users = []  
 @app.route("/")
 def home():
-    return "Home Page"
+    return redirect(url_for("register"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -22,7 +22,7 @@ def register():
             "password": password
         })
 
-        return redirect(url_for("home"))
+        return redirect(url_for("login"))
 
     return render_template("register.html")
 
