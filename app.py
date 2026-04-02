@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+from flask import session
+
 
 # create Database and Tables
 
@@ -22,10 +24,13 @@ def init_db():
 
 
 app = Flask(__name__)
+app.secret_key = "secret123"
 
 users = []  
 @app.route("/")
 def home():
+    if "user_id" in session:
+        return redirect(url_for("dashboard"))
     return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
@@ -46,11 +51,25 @@ def login():
         conn.close()
 
         if user and check_password_hash(user[3], password):
-            return "Login Successful"
+            session["user_id"] = user[0]
+            session["username"] = user[2]
+            return redirect(url_for("dashboard"))
         else:
             return "Invalid credentials"
 
     return render_template("login.html")
+
+@app.route("/dashboard")
+def dashboard():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    return f"Welcome {session['username']} 🎉"
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
