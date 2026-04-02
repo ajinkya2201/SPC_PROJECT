@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 # create Database and Tables
@@ -37,14 +38,14 @@ def login():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT * FROM users WHERE username=? AND password=?",
-            (username, password)
+            "SELECT * FROM users WHERE username=?",
+            (username,)
         )
 
         user = cursor.fetchone()
         conn.close()
 
-        if user:
+        if user and check_password_hash(user[3], password):
             return "Login Successful"
         else:
             return "Invalid credentials"
@@ -62,9 +63,11 @@ def register():
         cursor = conn.cursor()
 
         try:
+            hashed_password = generate_password_hash(password)
+
             cursor.execute(
-                "insert into users(name,username,password) values(?,?,?)",
-                (name,username,password)
+            "insert into users(name,username,password) values(?,?,?)",
+            (name, username, hashed_password)
             )
 
             conn.commit()
