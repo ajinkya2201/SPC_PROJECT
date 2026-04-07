@@ -1,78 +1,174 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Slideshow</title>
+    <title>Slideshow</title>
 
-<style>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            font-family: Arial;
+            margin: 0;
+            padding: 20px;
+        }
 
-body{
-text-align:center;
-background:black;
-color:white;
-font-family:Arial;
-margin:0;
-padding:20px;
-}
+        h2 {
+            margin-bottom: 10px;
+        }
 
-img{
-max-width:90%;
-max-height:80vh;
-margin-top:20px;
-border-radius:8px;
-}
+        #slideImage {
+            width: 80vw;
+            height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+            background: white;
+        }
 
-.controls{
-margin-top:20px;
-}
+        .controls {
+            margin-top: 20px;
+        }
 
-button{
-padding:10px 15px;
-margin:5px;
-cursor:pointer;
-border:none;
-border-radius:5px;
-}
+        button, select, input {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
 
-button:hover{
-background:#444;
-color:#000;
-}
+        button {
+            background: #667eea;
+            color: white;
+        }
 
-input{
-width:60px;
-padding:5px;
-}
-#slideImage{
-width: 80vw;
-height: 80vh;
-object-fit: contain;
-background: black;
-}
+        button:hover {
+            background: #5a67d8;
+        }
 
-</style>
-
+        select {
+            background: white;
+            color: black;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>Slideshow</h2>
+<h2>Slideshow Viewer</h2>
+
+<!-- Dropdown to select saved slideshow -->
+<select id="slideshowDropdown">
+    <option value="">Select Saved Slideshow</option>
+</select>
+
+<br><br>
 
 <img id="slideImage">
 
 <div class="controls">
 
-<button id="pauseBtn">Pause</button>
-<button id="resumeBtn">Resume</button>
-<button id="saveJsonBtn">Save JSON</button>
+    <button id="startBtn">Start</button>
+    <button id="pauseBtn">Pause</button>
 
-<label>Slide Time:</label>
-<input type="number" id="slideTime" min="1">
+    <label>Interval (sec):</label>
+    <input type="number" id="interval" value="3" min="1">
+
+    <button id="saveBtn">Save Slideshow</button>
 
 </div>
 
-<script src="slideshow.js"></script>
+<script>
+
+let slideshowImages = [];
+let currentIndex = 0;
+let intervalTime = 3000;
+let slideshowTimer = null;
+
+// 🔽 Load dropdown from DB
+fetch("/get_slideshows")
+.then(res => res.json())
+.then(data => {
+    const dropdown = document.getElementById("slideshowDropdown");
+
+    data.forEach(s => {
+        let option = document.createElement("option");
+        option.value = s.id;
+        option.textContent = s.name;
+        dropdown.appendChild(option);
+    });
+});
+
+
+// 🔽 When user selects slideshow
+document.getElementById("slideshowDropdown").onchange = function() {
+    const id = this.value;
+
+    if (!id) return;
+
+    fetch(`/get_slideshow/${id}`)
+    .then(res => res.json())
+    .then(data => {
+        slideshowImages = data.images || [];
+        currentIndex = 0;
+        intervalTime = (data.time || 3) * 1000;
+
+        showImage();
+    });
+};
+
+
+// 🖼️ Show image
+function showImage() {
+    if (slideshowImages.length === 0) return;
+
+    document.getElementById("slideImage").src = slideshowImages[currentIndex];
+}
+
+
+// ▶ Start slideshow
+document.getElementById("startBtn").onclick = () => {
+    clearInterval(slideshowTimer);
+
+    intervalTime = document.getElementById("interval").value * 1000;
+
+    slideshowTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % slideshowImages.length;
+        showImage();
+    }, intervalTime);
+};
+
+
+// ⏸ Pause slideshow
+document.getElementById("pauseBtn").onclick = () => {
+    clearInterval(slideshowTimer);
+};
+
+
+// 💾 Save slideshow
+document.getElementById("saveBtn").onclick = () => {
+
+    const name = prompt("Enter slideshow name:");
+    if (!name) return;
+
+    const data = {
+        name: name,
+        images: slideshowImages,
+        time: document.getElementById("interval").value
+    };
+
+    fetch("/save_slideshow", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.text())
+    .then(msg => alert(msg));
+};
+
+</script>
 
 </body>
 </html>
