@@ -4,73 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f4f4;
-            text-align: center;
-            margin-top: 100px;
-        }
 
-        .box {
-            background: white;
-            padding: 30px;
-            width: 300px;
-            margin: auto;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        button {
-            padding: 10px 20px;
-            background: red;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: darkred;
-        }
-    </style>
+    <!-- Link CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
 </head>
+
 <body>
-    <div class="box">
-        <h2>Welcome {{ username }} </h2>
-        
-        <form action="{{ url_for('logout') }}" method="GET">
-            <button type="submit">Logout</button>
-        </form>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="right-section">
+            <span class="welcome-text">Welcome {{ username }}</span>
+    
+            <form action="{{ url_for('logout') }}" method="GET">
+                <button class="logout-btn">Logout</button>
+            </form>
+        </div>
     </div>
 
-    <h2>Photo Gallery</h2>
+
     
-    <input type="file" id="imageInput" accept="image/*" multiple>
-    
-    <h3>Available Images</h3>
-    <div id="previewContainer" class="grid"></div>
-    
-    <h3>Slideshow Images</h3>
-    <div id="timeline" class="grid dropzone"></div>
-    
-    <div class="controls">
-    
-    <button id="startSlideshow">Start Slideshow</button>
-    
-    
-    <br><br>
-    
-    <label for="loadJson" class="loadBtn">Load JSON</label>
-    <input type="file" id="loadJson" accept=".json" hidden>
-    
-    </div>
-    
-    <div id="slideshow">
-    <img id="slideImage">
-    </div>
-    
-    <script src="script.js"></script>
+
 </body>
 </html>
