@@ -1,29 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
 
-    <!-- Link CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f4f4f4;
+    
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    
+        /* Top Bar */
+        .topbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 30px;
+            background: #333;
+            color: white;
+            box-sizing: border-box;
+        }
+    
+        .logout-btn {
+            background: red;
+            border: none;
+            margin-top: 20px;
+            padding: 8px 20px;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    
+        /* Main Container */
+        .container {
+            width: 80%;
+            max-width: 900px;
+            text-align: center;
+            margin-top: 30px;
+        }
+    
+        h2 {
+            margin-top: 30px;
+        }
+    
+        /* Grid */
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 120px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    
+        .grid img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: grab;
+        }
+    
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed #555;
+            min-height: 150px;
+        }
+    
+        /* Button */
+        .start-btn {
+            margin-top: 25px;
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+    </style>
 </head>
 
 <body>
 
-    <!-- Navbar -->
-    <div class="navbar">
-        <div class="right-section">
-            <span class="welcome-text">Welcome {{ username }}</span>
+<!-- Top Bar -->
+<div class="topbar">
+    <h3>Image_Gallery</h3>
+    <form action="/logout">
+        <button class="logout-btn">Logout</button>
+    </form>
+</div>
+
+<div class="container">
+
+    <!-- Select Images -->
+    <h2>Select Images</h2>
+    <input type="file" id="imageInput" multiple accept="image/*">
+
+    <!-- Gallery -->
+    <h2>Gallery</h2>
+    <div id="gallery" class="grid"></div>
+
+    <!-- Slideshow Area -->
+    <h2>Slideshow</h2>
+    <div id="slideshowArea" class="grid dropzone"></div>
+
+    <!-- Start Button -->
+    <button class="start-btn" onclick="startSlideshow()">Start Slideshow</button>
+
+</div>
+<script>
+
+    let slideshowImages = [];
     
-            <form action="{{ url_for('logout') }}" method="GET">
-                <button class="logout-btn">Logout</button>
-            </form>
-        </div>
-    </div>
-
-
+    //Load gallery from database
+    function loadGallery() {
+        fetch("/get_gallery")
+        .then(res => res.json())
+        .then(images => {
+            let gallery = document.getElementById("gallery");
+            gallery.innerHTML = "";
     
+            images.forEach(obj => {
+                let img = document.createElement("img");
+                img.src = "/" + obj.url;   // IMPORTANT: now object
 
+                img.draggable = true;
+
+                // DRAG
+                img.ondragstart = (e) => {
+                    e.dataTransfer.setData("url", "/" + obj.url);
+                    e.dataTransfer.setData("from", "gallery");
+                };
+
+                // ✅ DOUBLE CLICK DELETE FROM DB
+                img.ondblclick = () => {
+                    if (confirm("Delete this image?")) {
+                        fetch(`/delete_image/${obj.id}`, {
+                            method: "DELETE"
+                        })
+                        .then(res => res.json())
+                        .then(() => loadGallery());
+                    }
+                };
+
+                gallery.appendChild(img);
+            });
+        });
+    }
+    
+    // Upload images to server
+    document.getElementById("imageInput").addEventListener("change", function(e) {
+        const files = e.target.files;
+    
+        for (let file of files) {
+            let formData = new FormData();
+            formData.append("image", file);
+    
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.text())
+            .then(() => loadGallery()); // refresh gallery
+        }
+    });
+    
+    
+    //Slideshow Dropzone
+    let dropzone = document.getElementById("slideshowArea");
+    
+    dropzone.ondragover = (e) => {
+        e.preventDefault();
+    };
+    
+    dropzone.ondrop = (e) => {
+        e.preventDefault();
+    
+        let url = e.dataTransfer.getData("url");
+    
+        slideshowImages.push(url);
+        renderSlideshow();
+    };
+    
+    
+    //Render Slideshow
+    function renderSlideshow() {
+        dropzone.innerHTML = "";
+    
+        slideshowImages.forEach((url, index) => {
+            let img = document.createElement("img");
+            img.src = url;
+            img.draggable = true;
+    
+            img.ondragstart = (e) => {
+                e.dataTransfer.setData("index", index);
+            };
+    
+            img.ondragover = (e) => e.preventDefault();
+    
+            img.ondrop = (e) => {
+                e.preventDefault();
+    
+                let fromIndex = e.dataTransfer.getData("index");
+                let toIndex = index;
+    
+                let temp = slideshowImages[fromIndex];
+                slideshowImages[fromIndex] = slideshowImages[toIndex];
+                slideshowImages[toIndex] = temp;
+    
+                renderSlideshow();
+            };
+    
+            // double click delete
+            img.ondblclick = () => {
+                slideshowImages.splice(index, 1);
+                renderSlideshow();
+            };
+    
+            dropzone.appendChild(img);
+        });
+    }
+    
+    
+    // Start Slideshow
+    function startSlideshow() {
+        if (slideshowImages.length === 0) {
+            alert("No images in slideshow!");
+            return;
+        }
+    
+        // still using localStorage for passing to slideshow page
+        localStorage.setItem("slideshow", JSON.stringify(slideshowImages));
+    
+        window.location.href = "/slideshow";
+    }
+    
+    
+    // Load gallery on page load
+    window.onload = loadGallery;
+    
+    </script>
+    
 </body>
 </html>

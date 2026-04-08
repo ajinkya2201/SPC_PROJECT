@@ -54,9 +54,10 @@
 </head>
 
 <body>
-
 <h2>Slideshow Viewer</h2>
-
+<a href="/dashboard">
+    <button>Home</button>
+</a>
 <!-- Dropdown to select saved slideshow -->
 <select id="slideshowDropdown">
     <option value="">Select Saved Slideshow</option>
@@ -80,95 +81,118 @@
 
 <script>
 
-let slideshowImages = [];
-let currentIndex = 0;
-let intervalTime = 3000;
-let slideshowTimer = null;
-
-// 🔽 Load dropdown from DB
-fetch("/get_slideshows")
-.then(res => res.json())
-.then(data => {
-    const dropdown = document.getElementById("slideshowDropdown");
-
-    data.forEach(s => {
-        let option = document.createElement("option");
-        option.value = s.id;
-        option.textContent = s.name;
-        dropdown.appendChild(option);
-    });
-});
-
-
-// 🔽 When user selects slideshow
-document.getElementById("slideshowDropdown").onchange = function() {
-    const id = this.value;
-
-    if (!id) return;
-
-    fetch(`/get_slideshow/${id}`)
-    .then(res => res.json())
-    .then(data => {
-        slideshowImages = data.images || [];
-        currentIndex = 0;
-        intervalTime = (data.time || 3) * 1000;
-
-        showImage();
-    });
-};
-
-
-// 🖼️ Show image
-function showImage() {
-    if (slideshowImages.length === 0) return;
-
-    document.getElementById("slideImage").src = slideshowImages[currentIndex];
-}
-
-
-// ▶ Start slideshow
-document.getElementById("startBtn").onclick = () => {
-    clearInterval(slideshowTimer);
-
-    intervalTime = document.getElementById("interval").value * 1000;
-
-    slideshowTimer = setInterval(() => {
-        currentIndex = (currentIndex + 1) % slideshowImages.length;
-        showImage();
-    }, intervalTime);
-};
-
-
-// ⏸ Pause slideshow
-document.getElementById("pauseBtn").onclick = () => {
-    clearInterval(slideshowTimer);
-};
-
-
-// 💾 Save slideshow
-document.getElementById("saveBtn").onclick = () => {
-
-    const name = prompt("Enter slideshow name:");
-    if (!name) return;
-
-    const data = {
-        name: name,
-        images: slideshowImages,
-        time: document.getElementById("interval").value
+    let slideshowImages = [];
+    let currentIndex = 0;
+    let intervalTime = 3000;
+    let slideshowTimer = null;
+    
+    
+    // 🔽 Load all saved slideshows (DB)
+    function loadSlideshows() {
+        fetch("/get_slideshows")
+        .then(res => res.json())
+        .then(data => {
+            const dropdown = document.getElementById("slideshowDropdown");
+            dropdown.innerHTML = '<option value="">Select Saved Slideshow</option>';
+    
+            data.forEach(s => {
+                let option = document.createElement("option");
+                option.value = s.id;
+                option.textContent = s.name;
+                dropdown.appendChild(option);
+            });
+        });
+    }
+    
+    
+    // 🔽 When user selects slideshow
+    document.getElementById("slideshowDropdown").onchange = function() {
+        const id = this.value;
+    
+        if (!id) return;
+    
+        fetch(`/get_slideshow/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            slideshowImages = data.images || [];
+            currentIndex = 0;
+            intervalTime = (data.time || 3) * 1000;
+    
+            document.getElementById("interval").value = data.time || 3;
+    
+            showImage();
+        });
     };
-
-    fetch("/save_slideshow", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    })
-    .then(res => res.text())
-    .then(msg => alert(msg));
-};
-
-</script>
-
+    
+    
+    // 🖼️ Show image
+    function showImage() {
+        if (slideshowImages.length === 0) return;
+    
+        document.getElementById("slideImage").src = slideshowImages[currentIndex];
+    }
+    
+    
+    // ▶ Start slideshow
+    document.getElementById("startBtn").onclick = () => {
+        if (slideshowImages.length === 0) {
+            alert("No images to show!");
+            return;
+        }
+    
+        clearInterval(slideshowTimer);
+    
+        intervalTime = document.getElementById("interval").value * 1000;
+    
+        slideshowTimer = setInterval(() => {
+            currentIndex = (currentIndex + 1) % slideshowImages.length;
+            showImage();
+        }, intervalTime);
+    };
+    
+    
+    // ⏸ Pause slideshow
+    document.getElementById("pauseBtn").onclick = () => {
+        clearInterval(slideshowTimer);
+    };
+    
+    
+    // 💾 Save slideshow (DB)
+    document.getElementById("saveBtn").onclick = () => {
+    
+        if (slideshowImages.length === 0) {
+            alert("No images to save!");
+            return;
+        }
+    
+        const name = prompt("Enter slideshow name:");
+        if (!name) return;
+    
+        const data = {
+            name: name,
+            images: slideshowImages,
+            time: document.getElementById("interval").value
+        };
+    
+        fetch("/save_slideshow", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadSlideshows(); // refresh dropdown
+        });
+    };
+    
+    
+    // 🔥 Load slideshows on page load
+    window.onload = loadSlideshows;
+    
+    </script>
+    
 </body>
 </html>
