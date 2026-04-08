@@ -62,6 +62,7 @@ def home():
 # ---------------- LOGIN ----------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -82,9 +83,9 @@ def login():
             session["username"] = user[2]
             return redirect(url_for("dashboard"))
         else:
-            return "Invalid credentials "
+            return "Invalid credentials"
 
-    return render_template("login.html")
+    return render_template("login.html",error = error)
 
 
 # ---------------- REGISTER ----------------
