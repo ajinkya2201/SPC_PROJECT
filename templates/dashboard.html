@@ -129,14 +129,15 @@
     
             images.forEach(obj => {
                 let img = document.createElement("img");
-                img.src = "/" + obj.url;   // IMPORTANT: now object
+                let fullUrl = window.location.origin + obj.url;
+                img.src = fullUrl;
 
                 img.draggable = true;
 
                 // DRAG
                 img.ondragstart = (e) => {
-                    e.dataTransfer.setData("url", "/" + obj.url);
-                    e.dataTransfer.setData("from", "gallery");
+                let fullUrl = window.location.origin + obj.url;
+                e.dataTransfer.setData("url", fullUrl);
                 };
 
                 // ✅ DOUBLE CLICK DELETE FROM DB

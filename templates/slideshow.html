@@ -87,7 +87,7 @@
     let slideshowTimer = null;
     
     
-    // 🔽 Load all saved slideshows (DB)
+    //  Load all saved slideshows (DB)
     function loadSlideshows() {
         fetch("/get_slideshows")
         .then(res => res.json())
@@ -103,29 +103,42 @@
             });
         });
     }
+    function startAutoSlideshow() {
+    clearInterval(slideshowTimer);
+
+    intervalTime = document.getElementById("interval").value * 1000;
+
+    slideshowTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % slideshowImages.length;
+        showImage();
+    }, intervalTime);
+}
     
-    
-    // 🔽 When user selects slideshow
+    // When user selects slideshow
     document.getElementById("slideshowDropdown").onchange = function() {
-        const id = this.value;
+    const id = this.value;
+
+    if (!id) return;
+
+    // Clear localStorage (VERY IMPORTANT)
+    localStorage.removeItem("slideshow");
+
+    fetch(`/get_slideshow/${id}`)
+    .then(res => res.json())
+    .then(data => {
+        slideshowImages = data.images || [];
+        currentIndex = 0;
+        intervalTime = (data.time || 3) * 1000;
+
+        document.getElementById("interval").value = data.time || 3;
+
+        showImage();
+        startAutoSlideshow();   //  auto start
+    });
+};
     
-        if (!id) return;
     
-        fetch(`/get_slideshow/${id}`)
-        .then(res => res.json())
-        .then(data => {
-            slideshowImages = data.images || [];
-            currentIndex = 0;
-            intervalTime = (data.time || 3) * 1000;
-    
-            document.getElementById("interval").value = data.time || 3;
-    
-            showImage();
-        });
-    };
-    
-    
-    // 🖼️ Show image
+    //  Show image
     function showImage() {
         if (slideshowImages.length === 0) return;
     
@@ -135,20 +148,13 @@
     
     // ▶ Start slideshow
     document.getElementById("startBtn").onclick = () => {
-        if (slideshowImages.length === 0) {
-            alert("No images to show!");
-            return;
-        }
-    
-        clearInterval(slideshowTimer);
-    
-        intervalTime = document.getElementById("interval").value * 1000;
-    
-        slideshowTimer = setInterval(() => {
-            currentIndex = (currentIndex + 1) % slideshowImages.length;
-            showImage();
-        }, intervalTime);
-    };
+    if (slideshowImages.length === 0) {
+        alert("No images to show!");
+        return;
+    }
+
+    startAutoSlideshow();
+};
     
     
     // ⏸ Pause slideshow
@@ -189,8 +195,40 @@
     };
     
     
-    // 🔥 Load slideshows on page load
-    window.onload = loadSlideshows;
+    //  Load slideshows on page load
+    window.onload = () => {
+    loadSlideshows();
+
+    let data = localStorage.getItem("slideshow");
+
+    if (data) {
+        slideshowImages = JSON.parse(data);
+        currentIndex = 0;
+
+        if (slideshowImages.length > 0) {
+            showImage();
+            startAutoSlideshow();
+        }
+    }
+};
+document.getElementById("slideshowDropdown").onchange = function() {
+    const id = this.value;
+
+    if (!id) return;
+
+    // ✅ REMOVE HERE (correct place)
+    localStorage.removeItem("slideshow");
+
+    fetch(`/get_slideshow/${id}`)
+    .then(res => res.json())
+    .then(data => {
+        slideshowImages = data.images || [];
+        currentIndex = 0;
+
+        showImage();
+        startAutoSlideshow();
+    });
+};
     
     </script>
     
