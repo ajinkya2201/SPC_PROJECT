@@ -205,10 +205,15 @@
     
     dropzone.ondrop = (e) => {
         e.preventDefault();
-    
+
         let url = e.dataTransfer.getData("url");
-    
-        slideshowImages.push(url);
+        let fromIndex = e.dataTransfer.getData("index");
+
+        //ONLY add if coming from gallery
+        if (url && fromIndex === "") {
+            slideshowImages.push(url);
+        }
+
         renderSlideshow();
     };
     
@@ -230,14 +235,18 @@
     
             img.ondrop = (e) => {
                 e.preventDefault();
-    
-                let fromIndex = e.dataTransfer.getData("index");
+                e.stopPropagation();
+
+                let fromIndex = parseInt(e.dataTransfer.getData("index"));
                 let toIndex = index;
-    
-                let temp = slideshowImages[fromIndex];
-                slideshowImages[fromIndex] = slideshowImages[toIndex];
-                slideshowImages[toIndex] = temp;
-    
+
+                if (isNaN(fromIndex)) return;
+
+                let draggedItem = slideshowImages[fromIndex];
+
+                slideshowImages.splice(fromIndex, 1);
+                slideshowImages.splice(toIndex, 0, draggedItem);
+
                 renderSlideshow();
             };
     
