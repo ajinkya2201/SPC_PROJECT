@@ -5,7 +5,7 @@
 
     <style>
         body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #4a4b50, #615e64);
             color: white;
             text-align: center;
             font-family: Arial;
@@ -62,11 +62,9 @@
 <select id="slideshowDropdown">
     <option value="">Select Saved Slideshow</option>
 </select>
-
 <br><br>
 
 <img id="slideImage">
-
 <div class="controls">
 
     <button id="startBtn">Start</button>
@@ -79,15 +77,15 @@
 
 </div>
 
+
 <script>
 
     let slideshowImages = [];
     let currentIndex = 0;
     let intervalTime = 3000;
     let slideshowTimer = null;
-    
-    
-    //  Load all saved slideshows (DB)
+
+    //Load all saved slideshows (from DB)
     function loadSlideshows() {
         fetch("/get_slideshows")
         .then(res => res.json())
@@ -103,6 +101,7 @@
             });
         });
     }
+
     function startAutoSlideshow() {
     clearInterval(slideshowTimer);
 
@@ -114,13 +113,11 @@
     }, intervalTime);
 }
     
-    // When user selects slideshow
+    //slideshow dropdown
     document.getElementById("slideshowDropdown").onchange = function() {
     const id = this.value;
 
     if (!id) return;
-
-    // Clear localStorage (VERY IMPORTANT)
     localStorage.removeItem("slideshow");
 
     fetch(`/get_slideshow/${id}`)
@@ -137,8 +134,6 @@
     });
 };
     
-    
-    //  Show image
     function showImage() {
         if (slideshowImages.length === 0) return;
     
@@ -146,7 +141,7 @@
     }
     
     
-    // ▶ Start slideshow
+    //Start slideshow
     document.getElementById("startBtn").onclick = () => {
     if (slideshowImages.length === 0) {
         alert("No images to show!");
@@ -157,13 +152,13 @@
 };
     
     
-    // ⏸ Pause slideshow
+    //Pause slideshow
     document.getElementById("pauseBtn").onclick = () => {
         clearInterval(slideshowTimer);
     };
     
     
-    // 💾 Save slideshow (DB)
+    //Save slideshow (DB)
     document.getElementById("saveBtn").onclick = () => {
     
         if (slideshowImages.length === 0) {
@@ -190,12 +185,10 @@
         .then(res => res.text())
         .then(msg => {
             alert(msg);
-            loadSlideshows(); // refresh dropdown
+            loadSlideshows();
         });
     };
     
-    
-    //  Load slideshows on page load
     window.onload = () => {
     loadSlideshows();
 
@@ -216,7 +209,6 @@ document.getElementById("slideshowDropdown").onchange = function() {
 
     if (!id) return;
 
-    // ✅ REMOVE HERE (correct place)
     localStorage.removeItem("slideshow");
 
     fetch(`/get_slideshow/${id}`)
@@ -229,8 +221,7 @@ document.getElementById("slideshowDropdown").onchange = function() {
         startAutoSlideshow();
     });
 };
-    
-    </script>
+</script>
     
 </body>
 </html>

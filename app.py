@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.secret_key = "secret123"
 
 
-# ---------------- DATABASE INIT ----------------
+# ---------------- DATABASE SCHEMA ----------------
 def init_db():
     conn = sqlite3.connect("photo.db")
     cursor = conn.cursor()

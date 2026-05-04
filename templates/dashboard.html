@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>Gallery</title>
 
     <style>
         body {
@@ -19,22 +19,33 @@
             width: 100%;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 10px 30px;
             background: #333;
             color: white;
             box-sizing: border-box;
         }
-    
+
+        .right-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .username {
+            font-weight: bold;
+        }
+
         .logout-btn {
             background: red;
             border: none;
-            margin-top: 20px;
             padding: 8px 20px;
             color: white;
             cursor: pointer;
             border-radius: 5px;
-        }
-    
+            margin-top: 0;
+        }    
+
         /* Main Container */
         .container {
             width: 80%;
@@ -46,8 +57,14 @@
         h2 {
             margin-top: 30px;
         }
-    
-        /* Grid */
+        #imageInput::file-selector-button {
+            padding: 8px 15px;
+            border: 1px solid #000;
+            background: #7a82f5;
+            color: #f4f4f4;
+            border-radius: 3px;
+            cursor: pointer;
+        }
         .grid {
             display: flex;
             flex-wrap: wrap;
@@ -67,13 +84,11 @@
             cursor: grab;
         }
     
-        /* Dropzone */
         .dropzone {
             border: 2px dashed #555;
             min-height: 150px;
         }
     
-        /* Button */
         .start-btn {
             margin-top: 25px;
             padding: 12px 25px;
@@ -92,9 +107,14 @@
 <!-- Top Bar -->
 <div class="topbar">
     <h3>Image_Gallery</h3>
-    <form action="/logout">
-        <button class="logout-btn">Logout</button>
-    </form>
+
+    <div class="right-section">
+        <span class="username">{{ username }}</span>
+
+        <form action="/logout">
+            <button class="logout-btn">Logout</button>
+        </form>
+    </div>
 </div>
 
 <div class="container">
@@ -113,10 +133,15 @@
 
     <!-- Start Button -->
     <button class="start-btn" onclick="startSlideshow()">Start Slideshow</button>
-
+    
+    <!-- View Saved Slideshow Button -->
+    <a href="/slideshow" style="text-decoration: none; color:black;">
+        <button class="start-btn">View Slideshow</button>
+    </a>
 </div>
-<script>
 
+
+<script>
     let slideshowImages = [];
     
     //Load gallery from database
@@ -134,13 +159,12 @@
 
                 img.draggable = true;
 
-                // DRAG
                 img.ondragstart = (e) => {
                 let fullUrl = window.location.origin + obj.url;
                 e.dataTransfer.setData("url", fullUrl);
                 };
 
-                // ✅ DOUBLE CLICK DELETE FROM DB
+                // DOUBLE CLICK DELETE FROM DB
                 img.ondblclick = () => {
                     if (confirm("Delete this image?")) {
                         fetch(`/delete_image/${obj.id}`, {
@@ -169,12 +193,10 @@
                 body: formData
             })
             .then(res => res.text())
-            .then(() => loadGallery()); // refresh gallery
+            .then(() => loadGallery());
         }
     });
     
-    
-    //Slideshow Dropzone
     let dropzone = document.getElementById("slideshowArea");
     
     dropzone.ondragover = (e) => {
@@ -191,7 +213,7 @@
     };
     
     
-    //Render Slideshow
+    //Render Slideshow Page
     function renderSlideshow() {
         dropzone.innerHTML = "";
     
@@ -237,14 +259,11 @@
             return;
         }
     
-        // still using localStorage for passing to slideshow page
         localStorage.setItem("slideshow", JSON.stringify(slideshowImages));
     
         window.location.href = "/slideshow";
     }
     
-    
-    // Load gallery on page load
     window.onload = loadGallery;
     
     </script>
