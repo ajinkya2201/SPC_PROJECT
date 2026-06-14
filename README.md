@@ -41,6 +41,9 @@ User can:
         * Username displayed in dashboard
         * Session persists across navigation
 
+## Live Demo
+   https://image-gallery-ulik.onrender.com
+   
 ## Tech stack 
 
     * Frontend 
